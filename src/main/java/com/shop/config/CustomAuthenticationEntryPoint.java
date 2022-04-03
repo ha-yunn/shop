@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+//권한 설정
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     @Override
