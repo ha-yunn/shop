@@ -30,8 +30,4 @@ public class Order extends BaseEntity {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL,
     orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrderItem> orderItems = new ArrayList<>();
-
-    //private LocalDateTime regTime; //등록시간
-    //private LocalDateTime updateTime; //수정시간
-
 }
