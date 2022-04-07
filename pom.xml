@@ -118,7 +118,6 @@
 	</dependencies>
 
 	<build>
-		<!-- Qdomain -->
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
@@ -133,6 +132,7 @@
 				</configuration>
 			</plugin>
 
+			<!-- Qdomain -->
 			<plugin>
 				<groupId>com.mysema.maven</groupId>
 				<artifactId>apt-maven-plugin</artifactId>
