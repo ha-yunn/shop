@@ -2,6 +2,7 @@ package com.shop.repository;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.shop.constant.ItemSellStatus;
 import com.shop.dto.ItemSearchDto;
@@ -13,6 +14,7 @@ import com.shop.entity.QItemImg;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.thymeleaf.util.StringUtils;
 
 import javax.persistence.EntityManager;
@@ -64,8 +66,7 @@ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom{
     @Override
     public Page<Item> getAdminItemPage(ItemSearchDto itemSearchDto, Pageable pageable) {
 
-        //List<Item> content = queryFactory
-        QueryResults<Item> results = queryFactory
+        List<Item> fetch = queryFactory
                 .selectFrom(QItem.item)
                 .where(regDtsAfter(itemSearchDto.getSearchDateType()),
                         searchSellStatusEq(itemSearchDto.getSearchSellStatus()),
@@ -74,13 +75,19 @@ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom{
                 .orderBy(QItem.item.id.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
-                //.fetch();
-                .fetchResults();
+                .fetch();
 
-        //long total = content.size();
-        List<Item> content = results.getResults();
-        long total = results.getTotal();
-        return new PageImpl<>(content, pageable, total);
+        //count 만 가져오는 쿼리
+        JPQLQuery<Item> count = queryFactory
+                .selectFrom(QItem.item)
+                .where(
+                        regDtsAfter(itemSearchDto.getSearchDateType()),
+                        searchSellStatusEq(itemSearchDto.getSearchSellStatus()),
+                        searchByLike(itemSearchDto.getSearchBy(),
+                                itemSearchDto.getSearchQuery())
+                );
+
+        return PageableExecutionUtils.getPage(fetch,pageable,()-> count.fetchCount());
     }
 
     //메인 화면
@@ -93,7 +100,7 @@ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom{
         QItem item = QItem.item;
         QItemImg itemImg = QItemImg.itemImg;
 
-        QueryResults<MainItemDto> results = queryFactory
+        List<MainItemDto> fetch = queryFactory
                 .select(
                         new QMainItemDto(
                                 item.id,
@@ -109,10 +116,25 @@ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom{
                 .orderBy(item.id.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
-                .fetchResults();
+                .fetch();
 
-        List<MainItemDto> content = results.getResults();
-        long total = results.getTotal();
-        return new PageImpl<>(content, pageable, total);
+        //count 만 가져오는 쿼리
+        JPQLQuery<MainItemDto> count = queryFactory
+                .select(
+                        new QMainItemDto(
+                                item.id,
+                                item.itemNm,
+                                item.itemDetail,
+                                itemImg.imgUrl,
+                                item.price)
+                )
+                .from(itemImg)
+                .join(itemImg.item, item)
+                .where(itemImg.repImgYn.eq("Y"))
+                .where(
+                        itemNmLike(itemSearchDto.getSearchQuery())
+                );
+
+        return PageableExecutionUtils.getPage(fetch,pageable,()-> count.fetchCount());
     }
 }
