@@ -2,7 +2,6 @@ package com.shop.controller;
 
 import com.shop.dto.ItemFormDto;
 import com.shop.dto.ItemSearchDto;
-import com.shop.dto.MainItemDto;
 import com.shop.entity.Item;
 import com.shop.service.ItemService;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +51,7 @@ public class itemController {
             itemService.saveItem(itemFormDto, itemImgFileList);
         } catch (Exception e) {
             model.addAttribute("errorMessage", "상품 등록 중 에러가 발생하였습니다.");
+            return "item/itemForm";
         }
         return "redirect:/";
     }
@@ -86,7 +86,8 @@ public class itemController {
         try {
             itemService.updateItem(itemFormDto, itemImgFileList);
         } catch (Exception e) {
-            model.addAttribute("errorMessage", "상품 등록 중 에러가 발생하였습니다.");
+            model.addAttribute("errorMessage", "상품 수정 중 에러가 발생하였습니다.");
+            return "item/itemForm";
         }
         return "redirect:/";
     }
@@ -103,6 +104,14 @@ public class itemController {
         model.addAttribute("maxPage", 5);
 
         return "item/itemMng";
+    }
+
+    //상품 상세 페이지
+    @GetMapping(value = "/item/{itemId}")
+    public String itemDtl(Model model, @PathVariable("itemId") Long itemId) {
+        ItemFormDto itemFormDto = itemService.getItemDtl(itemId);
+        model.addAttribute("item", itemFormDto);
+        return "item/itemDtl";
     }
 }
 
